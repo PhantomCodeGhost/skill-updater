@@ -86,10 +86,13 @@ async function fetchFromGitHub(skillDir, source) {
   const subdir = source.subdir || "";
   const headers = githubHeaders();
 
+  console.log(`Updating ${owner}/${repo}...`);
+
   // Get file tree
   const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
   let treeData;
   try {
+    console.log(`Fetching tree from ${treeUrl}...`);
     const { body, status } = await httpsGet(treeUrl, headers);
     if (status === 403) return { success: false, message: "GitHub rate limited — set GITHUB_TOKEN" };
     if (status === 404) return { success: false, message: "repo not found (private repo needs GITHUB_TOKEN)" };
@@ -104,10 +107,17 @@ async function fetchFromGitHub(skillDir, source) {
   );
   if (!files.length) return { success: false, message: `no files found at subdir='${subdir}' branch='${branch}'` };
 
+  console.log(`Found ${files.length} files to download.`);
+
   // Backup
   const bak = skillDir + ".bak";
   try {
-    if (existsSync(bak)) execSync(`rm -rf "${bak}"`);
+    if (existsSync(bak)) {
+        console.log(`Removing old backup...`);
+        const { rmSync } = await import("fs");
+        rmSync(bak, { recursive: true, force: true });
+    }
+    console.log(`Creating backup...`);
     cpSync(skillDir, bak, { recursive: true });
   } catch {}
 
@@ -118,13 +128,19 @@ async function fetchFromGitHub(skillDir, source) {
     const dest = join(skillDir, relPath);
     try {
       mkdirSync(dirname(dest), { recursive: true });
+      console.log(`Downloading ${relPath}...`);
       const { body, status } = await httpsGet(rawUrl, headers);
       if (status !== 200) return { success: false, message: `HTTP ${status} for ${relPath}` };
       writeFileSync(dest, body);
       downloaded++;
     } catch (e) {
       // Restore backup
-      try { execSync(`rm -rf "${skillDir}" && cp -r "${bak}" "${skillDir}"`); } catch {}
+      try { 
+        console.log(`Restoring backup due to error...`);
+        const { rmSync } = await import("fs");
+        rmSync(skillDir, { recursive: true, force: true });
+        cpSync(bak, skillDir, { recursive: true });
+      } catch {}
       return { success: false, message: `download failed for ${relPath}: ${e.message}` };
     }
   }

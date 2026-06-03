@@ -70,7 +70,7 @@ function extractFrontmatterField(skillMdPath, field) {
   return null;
 }
 
-function readSkillSource(skillDir) {
+async function readSkillSource(skillDir) {
   // 1. .skill-source file
   const sourceFile = join(skillDir, ".skill-source");
   if (existsSync(sourceFile)) {
@@ -118,7 +118,7 @@ function getSkillName(skillDir) {
   return skillDir.split("/").pop();
 }
 
-function discoverSkillsInDir(dir) {
+async function discoverSkillsInDir(dir) {
   const skills = [];
   try {
     const entries = readdirSync(dir);
@@ -127,7 +127,7 @@ function discoverSkillsInDir(dir) {
       if (!statSync(fullPath).isDirectory()) continue;
       if (!existsSync(join(fullPath, "SKILL.md"))) continue;
       const name = getSkillName(fullPath);
-      const source = readSkillSource(fullPath);
+      const source = await readSkillSource(fullPath);
       skills.push({ name, dir: fullPath, source });
     }
   } catch {}
@@ -151,7 +151,7 @@ async function main() {
 
   const allSkills = [];
   for (const dir of searchDirs) {
-    const found = discoverSkillsInDir(dir);
+    const found = await discoverSkillsInDir(dir);
     allSkills.push(...found);
   }
 
