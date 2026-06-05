@@ -2,6 +2,7 @@
 
 > Keep your AI agent skills fresh. Token-efficient — one API call per skill to detect updates, zero file downloads until you approve.
 
+[![skills.sh](https://skills.sh/b/PhantomCodeGhost/skill-updater)](https://skills.sh/PhantomCodeGhost/skill-updater)[![skills.sh](https://skills.sh/b/PhantomCodeGhost/skill-updater)](https://skills.sh/PhantomCodeGhost/skill-updater)
 ---
 
 ## The Problem with Naive Skill Updaters
